@@ -36,6 +36,17 @@ keyword**.
 "<a href='/home/'>Hello world</a>"
 ```
 
+``CL-TO-HTML`` allows you to write invalid html. It doesn't know what if a tag
+is self closing or not.
+
+```lisp
+> (cl-to-html (:script :src "foo"))
+"<script src='foo'>"
+
+> (cl-to-html (:script :src "foo" +no-self-close+)
+"<script src='foo'></script>"
+```
+
 ## Pros & Cons
 The pros is that is very flexible to write code inside the macros of this
 library. The cons are that is slow in comparison of the other library that

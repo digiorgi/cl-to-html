@@ -3,11 +3,12 @@
   (:use :cl)
   (:export :cl-to-html
            :cl-to-html-stream
-           :+html5-doctype+))
+           :+html5-doctype+
+           :+no-self-close+))
 (in-package :cl-to-html)
 
 (defvar +html5-doctype+ "<!DOCTYPE html>")
-(defvar *result*)
+(defvar +no-self-close+ "")
 
 (defun tagp (tag)
   (typep tag 'KEYWORD))

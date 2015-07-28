@@ -31,7 +31,11 @@
   (assert-equalp "<a href='/home/'>Hello world</a>"
                  (let ((variable nil))
                    (cl-to-html (:a (if variable :br :href) "/home/"
-                                   "Hello world")))))
+                                   "Hello world"))))
+  (assert-equalp "<script src='foo'>"
+                 (cl-to-html (:script :src "foo")))
+  (assert-equalp "<script src='foo'></script>"
+                 (cl-to-html (:script :src "foo" +no-self-close+))))
 
 (defun test-all ()
   (lisp-unit:remove-tests)
