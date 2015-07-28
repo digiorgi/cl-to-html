@@ -12,6 +12,10 @@
 (defun tagp (tag)
   (typep tag 'KEYWORD))
 
+(defun list-start-with-keywordp (list)
+  (and (listp list)
+       (typep (car list) 'KEYWORD)))
+
 (defun open-start-tag (tag &optional stream)
   (format stream "<~a" (string-downcase (string tag))))
 
@@ -29,7 +33,7 @@ the body that doesn't have a pair of attribute and value."
      for value = (or (cadr cons) "")
      do
        (if (tagp att)
-           (format stream " ~a='~a'" (keyword->tag att) value)
+           (format stream " ~a='~a'" (string-downcase (string att)) value)
            (return cons))))
 
 (defun write-body (body &optional stream)
@@ -46,28 +50,31 @@ the body that doesn't have a pair of attribute and value."
           (write-body tag-body stream)
           (close-end-tag tag stream))))))
 
-(defun eval-evaluable (x)
-  (if (or
-       ;;IS A FUNCTIONA
-       (and (listp x) (not (typep (car x) 'KEYWORD)))
-       ;;IS A VARIABLE
-       (typep x 'SYMBOL))
-      (eval x)
-      x))
+(defun add-list-call (list-of-lists)
+  "Add the #'LIST function call to every list starting with a keyword. With
+this there is no problem to write (:something 'like this')."
+  (if (list-start-with-keywordp list-of-lists)
+      (cons 'list (loop for i in list-of-lists
+                     collecting (add-list-call i)))
+      list-of-lists))
 
-(defun eval-list (list)
-  (mapcar #'eval-evaluable list))
+(defmacro add-list-call-macro (&body body)
+  "Transforms the body to only one list, and every sublist if start with a
+keyword get transformed too."
+  (cons 'list (loop for item in body collecting (add-list-call item))))
 
 (defun translate (body &optional stream)
   (typecase body
     (STRING     (write-string body stream))
-    (LIST       (write-html (eval-list body) stream))
+    (LIST       (write-html body stream))
     (OTHERWISE  (format stream "~a" body))))
 
 (defmacro cl-to-html-stream (stream &body body)
-  (let ((iterator (gensym "ITERATOR")))
-    `(loop for ,iterator in (eval-list (quote ,body)) do
-          (translate ,iterator ,stream))))
+  (let ((iterator (gensym "ITERATOR"))
+        (cl-html  (gensym "CL-HTML")))
+    `(let ((,cl-html (add-list-call-macro ,@body)))
+       (loop for ,iterator in ,cl-html do
+            (translate ,iterator ,stream)))))
 
 (defmacro cl-to-html (&body body)
   (let ((stream   (gensym "STREAM")))

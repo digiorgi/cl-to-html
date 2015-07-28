@@ -24,10 +24,14 @@
                  (cl-to-html +html5-doctype+ (:strong "I'm strong")))
   (assert-equalp (concatenate 'string
                               "<ul><li>You saw an XXX-FILM</li>"
-                              "I saw an YYY-FILM<li></li></ul>")
+                              "<li>I saw an YYY-FILM</li></ul>")
                  (let ((x "XXX-FILM") (y "YYY-FILM"))
-                   (cl-to-html (:ul (:li "You saw an" x)
-                                    (:li "I saw an" y))))))
+                   (cl-to-html (:ul (:li "You saw an " x)
+                                    (:li "I saw an " y)))))
+  (assert-equalp "<a href='/home/'>Hello world</a>"
+                 (let ((variable nil))
+                   (cl-to-html (:a (if variable :br :href) "/home/"
+                                   "Hello world")))))
 
 (defun test-all ()
   (lisp-unit:remove-tests)
